@@ -96,22 +96,27 @@ async def get_or_create_session(whatsapp_number: str) -> Dict:
             "whatsapp_number": whatsapp_number,
             "conversation_history": [],
             "current_state": {
-                "step": "greeting",
+                "step": "collecting",
                 "collected_fields": {},
-                "missing_fields": ["customer_name", "service_type", "mode", "preferred_date", "preferred_time"]
+                "missing_fields": ["name", "service", "mode", "date", "time"],
+                "last_question": "name"
             },
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
         }
-        try:
-            result = await db.sessions.insert_one(session)
-            session["_id"] = str(result.inserted_id)
-            logger.info(f"New session created for {whatsapp_number}")
-        except Exception as e:
-            logger.error(f"Failed to create session: {e}")
-            session["_id"] = None
+        result = await db.sessions.insert_one(session)
+        session["_id"] = str(result.inserted_id)
+        logger.info(f"New session created for {whatsapp_number}")
     else:
         session["_id"] = str(session["_id"])
+        # Initialize current_state if missing
+        if "current_state" not in session:
+            session["current_state"] = {
+                "step": "collecting",
+                "collected_fields": {},
+                "missing_fields": ["name", "service", "mode", "date", "time"],
+                "last_question": "name"
+            }
     
     return session
 
@@ -129,6 +134,7 @@ async def update_session(whatsapp_number: str, session: Dict):
         {"$set": session_copy},
         upsert=True
     )
+    logger.info(f"Session updated for {whatsapp_number} - Step: {session.get('current_state', {}).get('step')}")
 
 async def delete_old_sessions(days: int = 7):
     """Delete sessions older than specified days"""
