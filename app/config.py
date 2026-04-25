@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     WHATSAPP_PHONE_ID: str = os.getenv("WHATSAPP_PHONE_ID", "")
     
     # MongoDB Atlas
-    MONGODB_URL: str = os.getenv("MONGODB_URL") or os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+    MONGODB_URL: str = os.getenv("MONGODB_URL") or os.getenv("MONGODB_URL", "mongodb://localhost:27017")
     MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "booking_assistant")
     
     # AI - Google Gemini
